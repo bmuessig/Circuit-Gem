@@ -109,6 +109,10 @@ fi
 OUTFILE=$(basename $IMG .img)"_$BUILD.img"
 ZIPFILE=$(basename $IMG .img)"_$BUILD.zip"
 
+# Make sure that the mount points really exist
+mkdir -p "${MOUNTFAT32}"
+mkdir -p "${MOUNTEXT4}"
+
 # Sanity check OUTFILE
 if exists $OUTFILE ; then
   echo "ERROR: OUTFILE [$OUTFILE] exists! Can't create new image"
@@ -130,18 +134,21 @@ if [ $MNTDIRCLEANCOUNT != 0 ] ; then
 fi
 
 # Copy img to new + name
-execute "cp $IMG $OUTFILE"
+execute "cp \"${$IMG \"${$OUTFILE}\""
 
 # Mount
-execute "mount -o loop,offset=4194304 $OUTFILE $MOUNTFAT32"
-execute "mount -o loop,offset=63963136 $OUTFILE $MOUNTEXT4"
+execute "export LOOPDEV=\"$(losetup -Pf --show \"${$OUTFILE}\")\""
+LOOPDEV=$(echo "${LOOPDEV}" | tr -d '\n')
+execute "mount \"${LOOPDEV}p1\" $MOUNTFAT32"
+execute "mount \"${LOOPDEV}p2\" $MOUNTEXT4"
 
 # Install
-execute "../install.sh YES $BRANCH $MOUNTFAT32 $MOUNTEXT4"
+execute "../install.sh YES \"${BRANCH}\" \"${$MOUNTFAT32}\" \"${$MOUNTEXT4}\""
 
 # Unmount
-execute "umount $MOUNTFAT32"
-execute "umount $MOUNTEXT4"
+execute "umount \"${$MOUNTFAT32}\""
+execute "umount \"${$MOUNTEXT4}\""
+execute "losetup -d \"${LOOPDEV}\""
 
 # DONE
 echo "SUCCESS: Image [$OUTFILE] has been built!"
