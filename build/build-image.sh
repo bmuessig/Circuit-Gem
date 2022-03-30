@@ -87,7 +87,7 @@ exists() { #FILE
   
   file=$1
   
-  if [ -f $file ]; then
+  if [ -f "$file" ]; then
     echo "[i] FILE: [$file] exists."
     return 0
   else
@@ -101,53 +101,53 @@ exists() { #FILE
 echo "BUILDING.."
 
 # Sanity check IMG
-if ! exists $IMG ; then
+if ! exists "$IMG" ; then
   echo "ERROR: IMG [$IMG] doesn't exist"
   exit 1
 fi
 
-OUTFILE=$(basename $IMG .img)"_$BUILD.img"
-ZIPFILE=$(basename $IMG .img)"_$BUILD.zip"
+OUTFILE=$(basename "${IMG}" .img)"_$BUILD.img"
+ZIPFILE=$(basename "${IMG}" .img)"_$BUILD.zip"
 
 # Make sure that the mount points really exist
 mkdir -p "${MOUNTFAT32}"
 mkdir -p "${MOUNTEXT4}"
 
 # Sanity check OUTFILE
-if exists $OUTFILE ; then
+if exists "${OUTFILE}" ; then
   echo "ERROR: OUTFILE [$OUTFILE] exists! Can't create new image"
   exit 1
 fi
 
 # Check the mounted dir is clean
-MNTDIRCLEANCOUNT=$(ls $MOUNTFAT32 | wc -l)
+MNTDIRCLEANCOUNT=$(ls "${MOUNTFAT32}" | wc -l)
 if [ $MNTDIRCLEANCOUNT != 0 ] ; then
   echo "ERROR: Mount dir [$MOUNTFAT32] is not empty [$MNTDIRCLEANCOUNT], perhaps something is mounted on it?"
   exit 1
 fi
 
 # Check the mounted dir is clean
-MNTDIRCLEANCOUNT=$(ls $MOUNTEXT4 | wc -l)
+MNTDIRCLEANCOUNT=$(ls "${MOUNTEXT4}" | wc -l)
 if [ $MNTDIRCLEANCOUNT != 0 ] ; then
   echo "ERROR: Mount dir [$MOUNTEXT4] is not empty [$MNTDIRCLEANCOUNT], perhaps something is mounted on it?"
   exit 1
 fi
 
 # Copy img to new + name
-execute "cp \"${$IMG \"${$OUTFILE}\""
+execute "cp \"${IMG}\" \"${OUTFILE}\""
 
 # Mount
-execute "export LOOPDEV=\"$(losetup -Pf --show \"${$OUTFILE}\")\""
-LOOPDEV=$(echo "${LOOPDEV}" | tr -d '\n')
-execute "mount \"${LOOPDEV}p1\" $MOUNTFAT32"
-execute "mount \"${LOOPDEV}p2\" $MOUNTEXT4"
+execute "export LOOPDEV=\"\$(losetup -Pf --show \"${OUTFILE}\")\""
+LOOPDEV="$(echo \"${LOOPDEV}\" | tr -d '\n')"
+execute "mount \"${LOOPDEV}p1\" \"${MOUNTFAT32}\""
+execute "mount \"${LOOPDEV}p2\" \"${MOUNTEXT4}\""
 
 # Install
-execute "../install.sh YES \"${BRANCH}\" \"${$MOUNTFAT32}\" \"${$MOUNTEXT4}\""
+execute "../install.sh YES \"${BRANCH}\" \"${MOUNTFAT32}\" \"${MOUNTEXT4}\""
 
 # Unmount
-execute "umount \"${$MOUNTFAT32}\""
-execute "umount \"${$MOUNTEXT4}\""
+execute "umount \"${MOUNTFAT32}\""
+execute "umount \"${MOUNTEXT4}\""
 execute "losetup -d \"${LOOPDEV}\""
 
 # DONE
